@@ -8,10 +8,17 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+// GG text to speech config
 const client = new TextToSpeechClient({
     projectId: process.env.GOOGLE_TTS_PROJECT_ID,
     keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS,
 });
+// OPEN AI config
+const configuration = new Configuration({
+    organization: process.env.OPENAI_ORG_ID,
+    apiKey: process.env.OPENAI_API_KEY,
+});
+const openai = new OpenAIApi(configuration);
 app.get('/synthesize-speech', async (req, res) => {
     const { text, voice, audioConfig, ssmlGender, languageName } = req.query;
     const request = {
@@ -30,12 +37,6 @@ app.get('/synthesize-speech', async (req, res) => {
         res.status(500).send('Error generating audio');
     }
 });
-// OPEN AI config
-const configuration = new Configuration({
-    organization: process.env.OPENAI_ORG_ID,
-    apiKey: process.env.OPENAI_API_KEY,
-});
-const openai = new OpenAIApi(configuration);
 const getChatGPTResponse = async (content) => {
     if (_.isEmpty(content)) {
         return null;
