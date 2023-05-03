@@ -24,3 +24,5 @@ After that run:
 `npm i`
 
 `npm run start:watch`
+
+Server will be run @ localhost:3030
