@@ -1,57 +1,80 @@
 import express from 'express';
-import { TextToSpeechClient } from '@google-cloud/text-to-speech';
 import cors from 'cors';
 import bodyParser from 'body-parser';
-import { Configuration, OpenAIApi, } from 'openai';
+import OpenAI from 'openai';
 import _ from 'lodash';
+import { TEST_IMAGE } from './fixture';
 const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-// GG text to speech config
-const client = new TextToSpeechClient({
-    projectId: process.env.GOOGLE_TTS_PROJECT_ID,
-    keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS,
-});
-// OPEN AI config
-const configuration = new Configuration({
+const GPT_4o = 'gpt-4o';
+const GPT3 = 'gpt-3.5-turbo';
+const openai = new OpenAI({
     organization: process.env.OPENAI_ORG_ID,
     apiKey: process.env.OPENAI_API_KEY,
 });
-const openai = new OpenAIApi(configuration);
-app.get('/synthesize-speech', async (req, res) => {
-    const { text, voice, audioConfig, ssmlGender, languageName } = req.query;
-    const request = {
-        input: { text },
-        voice: { name: languageName, languageCode: voice || 'en-US', ssmlGender: ssmlGender || 'MALE' },
-        audioConfig: { audioEncoding: audioConfig || 'MP3' },
-    };
+const getChatGPTResponse = async (model, messages) => {
+    if (_.isEmpty(messages)) {
+        return null;
+    }
+    const completion = await openai.chat.completions.create({
+        model,
+        messages,
+    });
+    return completion.choices[0];
+};
+app.post('/gpt4o/chatCompletion', async (req, res) => {
+    const { content } = req.body;
     try {
-        const [response] = await client.synthesizeSpeech(request);
-        const { audioContent } = response;
-        res.set('Content-Type', 'audio/mpeg');
-        res.send(audioContent);
+        const response = await getChatGPTResponse(GPT_4o, content);
+        res.send(response);
     }
     catch (err) {
         console.error('ERROR:', err);
-        res.status(500).send('Error generating audio');
+        res.status(500).send('Error getting chat completion from chatGPT');
     }
 });
-const getChatGPTResponse = async (content) => {
-    if (_.isEmpty(content)) {
-        return null;
-    }
-    const completion = await openai.createChatCompletion({
-        model: 'gpt-3.5-turbo',
-        messages: content,
-    });
-    return completion.data;
-};
-app.post('/gpt/chatCompletion', async (req, res) => {
+app.post('/gpt3/chatCompletion', async (req, res) => {
     const { content } = req.body;
     try {
-        const response = await getChatGPTResponse(content);
+        const response = await getChatGPTResponse(GPT3, content);
         res.send(response);
+    }
+    catch (err) {
+        console.error('ERROR:', err);
+        res.status(500).send('Error getting chat completion from chatGPT');
+    }
+});
+app.post('/gpt4o/images', async (req, res) => {
+    // const { images } = req.body;
+    const images = [TEST_IMAGE];
+    const imagesContent = images.map((i) => {
+        return {
+            type: "image_url",
+            image_url: {
+                "url": `data:image/jpeg;base64,${i}`
+            }
+        };
+    });
+    if (images.length > 4) {
+        throw new Error("Cannot process more than 4 images");
+    }
+    try {
+        const body = {
+            model: GPT_4o,
+            messages: [
+                {
+                    role: "user",
+                    content: [
+                        { type: "text", text: "Rate these pictures from 0.0-10.0 in the context of dating profile pictures" },
+                        ...imagesContent
+                    ]
+                }
+            ]
+        };
+        const completion = await openai.chat.completions.create(body);
+        res.send(completion.choices[0]);
     }
     catch (err) {
         console.error('ERROR:', err);
