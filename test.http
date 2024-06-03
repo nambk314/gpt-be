@@ -1,0 +1,17 @@
+
+POST http://localhost:3030/gpt3/chatCompletion
+Content-Type: application/json
+
+{
+  "content": [
+    {
+      "role": "user",
+      "content": [
+        {
+          "type": "text",
+          "text": "Explain asynchronous programming in the style of the pirate Blackbeard."
+        }
+      ]
+    }
+  ]
+}

@@ -18,3 +18,7 @@ After that run:
 `npm run start:watch`
 
 Server will be run @ localhost:3030
+
+# rest client
+
+https://marketplace.visualstudio.com/items?itemName=humao.rest-client
