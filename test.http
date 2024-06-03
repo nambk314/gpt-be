@@ -1,0 +1,41 @@
+
+@api_url = http://localhost:3030
+
+### GPT 3 chat completion
+POST {{api_url}}/gpt3/chatCompletion
+Content-Type: application/json
+
+{
+  "content": [
+    {
+      "role": "user",
+      "content": [
+        {
+          "type": "text",
+          "text": "Explain asynchronous programming in the style of the pirate Blackbeard."
+        }
+      ]
+    }
+  ]
+}
+### GPT 4 chat completion
+POST {{api_url}}/gpt4o/chatCompletion
+Content-Type: application/json
+
+{
+  "content": [
+    {
+      "role": "user",
+      "content": [
+        {
+          "type": "text",
+          "text": "Explain asynchronous programming in the style of the pirate Blackbeard."
+        }
+      ]
+    }
+  ]
+}
+
+### Image
+POST {{api_url}}/gpt4o/images
+

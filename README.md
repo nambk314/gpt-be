@@ -18,3 +18,9 @@ After that run:
 `npm run start:watch`
 
 Server will be run @ localhost:3030
+
+# rest client
+
+You can test out the apis via rest client and the `test.http` file
+
+https://marketplace.visualstudio.com/items?itemName=humao.rest-client
